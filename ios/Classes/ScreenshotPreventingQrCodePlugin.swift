@@ -74,6 +74,7 @@ class FLNativeView: NSObject, FlutterPlatformView {
         
         if let params = args as? [String: Any] {
           var data = params["data"] as! String
+          var errorCorrectionLevel = params["errorCorrectionLevel"] as! String
           var height = params["height"] as! Double
           var width = params["width"] as! Double
             
@@ -81,6 +82,7 @@ class FLNativeView: NSObject, FlutterPlatformView {
           let topController = keyWindows?.rootViewController
           var child = UIHostingController(rootView: ContentView(
               from: data,
+              errorCorrectionLevel: errorCorrectionLevel,
               height: height,
               width: width
           ))
@@ -105,19 +107,21 @@ struct ContentView: View {
     let filter = CIFilter.qrCodeGenerator()
 
     var from: String
+    var errorCorrectionLevel: String
     var height: CGFloat
     var width: CGFloat
 
     var body: some View {
-        Image(uiImage: generateQRCode(from: from))
+        Image(uiImage: generateQRCode(from: from, errorCorrectionLevel: errorCorrectionLevel))
             .resizable()
             .scaledToFit()
             .frame(width: width, height: height)
             .screenshotProtected(isProtected: preventScreenshot)
     }
 
-    func generateQRCode(from string: String) -> UIImage {
+    func generateQRCode(from string: String, errorCorrectionLevel: String = "M") -> UIImage {
         filter.message = Data(string.utf8)
+        filter.setValue(errorCorrectionLevel, forKey: "inputCorrectionLevel")
 
         if let outputImage = filter.outputImage {
             let transform = CGAffineTransform(scaleX: 10, y: 10)
